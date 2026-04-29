@@ -1,0 +1,91 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# Météo IA France — Backend
+# Fichiers et dossiers à NE JAMAIS committer sur GitHub
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+# ─── Secrets & variables d'environnement ─────────────────────────────────────
+# CRITIQUE : ne JAMAIS committer .env (contient passwords DB)
+.env
+.env.local
+.env.*.local
+.env.production
+
+# Garder UNIQUEMENT le template .env.example (qui est ok à committer)
+!.env.example
+
+
+# ─── Dépendances Node ────────────────────────────────────────────────────────
+# 60 Mo, regénérables avec `npm install`
+node_modules/
+
+# Logs npm/yarn
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+
+# ─── Build & dist ────────────────────────────────────────────────────────────
+dist/
+build/
+out/
+*.tsbuildinfo
+
+
+# ─── Logs applicatifs ────────────────────────────────────────────────────────
+logs/
+*.log
+
+
+# ─── Cache ───────────────────────────────────────────────────────────────────
+.cache/
+.npm/
+.eslintcache
+
+
+# ─── Tests & coverage ────────────────────────────────────────────────────────
+coverage/
+*.lcov
+.nyc_output/
+
+
+# ─── macOS ───────────────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+
+
+# ─── Éditeurs ────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.history/
+
+
+# ─── Données locales (au cas où) ─────────────────────────────────────────────
+# Si jamais tu mets un dump SQL ici par erreur
+*.sql.gz
+*.dump
+
+
+# ─── PM2 ─────────────────────────────────────────────────────────────────────
+.pm2/
+ecosystem.config.local.js
+
+
+# ─── Divers ──────────────────────────────────────────────────────────────────
+*.pid
+*.seed
+*.pid.lock
+.node_repl_history

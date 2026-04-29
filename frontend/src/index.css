@@ -1,0 +1,236 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/*  Mode CLAIR — palette neutre douce (compatible avec dark Claude)    */
+/* ═══════════════════════════════════════════════════════════════════ */
+:root {
+  --background: oklch(0.99 0.002 285);
+  --foreground: oklch(0.18 0.005 285);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.005 285);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.005 285);
+  --primary: oklch(0.21 0.005 285);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.96 0.003 285);
+  --secondary-foreground: oklch(0.21 0.005 285);
+  --muted: oklch(0.96 0.003 285);
+  --muted-foreground: oklch(0.55 0.005 285);
+  --accent: oklch(0.96 0.003 285);
+  --accent-foreground: oklch(0.21 0.005 285);
+  --destructive: oklch(0.58 0.22 27);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.92 0.003 285);
+  --input: oklch(0.92 0.003 285);
+  --ring: oklch(0.71 0.005 285);
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/*  Mode SOMBRE — palette inspirée de Claude.ai                        */
+/*  Noir profond légèrement teinté violet (hue 285, chroma 0.005)      */
+/* ═══════════════════════════════════════════════════════════════════ */
+.dark {
+  --background: oklch(0.18 0.005 285);
+  --foreground: oklch(0.95 0 0);
+  --card: oklch(0.21 0.005 285);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.21 0.005 285);
+  --popover-foreground: oklch(0.95 0 0);
+  --primary: oklch(0.95 0 0);
+  --primary-foreground: oklch(0.18 0.005 285);
+  --secondary: oklch(0.24 0.005 285);
+  --secondary-foreground: oklch(0.95 0 0);
+  --muted: oklch(0.24 0.005 285);
+  --muted-foreground: oklch(0.65 0.005 285);
+  --accent: oklch(0.24 0.005 285);
+  --accent-foreground: oklch(0.95 0 0);
+  --destructive: oklch(0.65 0.21 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.27 0.006 285);
+  --input: oklch(0.27 0.006 285);
+  --ring: oklch(0.55 0.006 285);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+
+/* Labels permanents des villes sur FranceMap */
+.leaflet-tooltip.city-label {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #FFFFFF !important;
+  font-size: 10px !important;
+  font-weight: 500 !important;
+  padding: 0 !important;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.9), 0 0 5px rgba(0, 0, 0, 0.6) !important;
+  white-space: nowrap;
+}
+
+.leaflet-tooltip.city-label::before {
+  display: none !important;
+}
+
+
+/* Force les dropdowns Radix (Select, Tooltip…) au-dessus de Leaflet */
+/* Leaflet utilise z-index 400-700, on monte à 9999 pour être tranquille */
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Z-INDEX : Force tous les overlays Radix au-dessus de Leaflet
+   Leaflet utilise z-index 200-700 (panes), 1000 (controls/popups).
+   On monte à 9999+ pour être garanti au-dessus.
+   ═══════════════════════════════════════════════════════════════════════ */
+.leaflet-pane,
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 400 !important;
+}
+.leaflet-control {
+  z-index: 500 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   ANIMATION SOBRE : halo qui pulse autour des cercles villes
+   Animation discrète sur stroke-opacity uniquement (pas de scale).
+   Effet "respiration" élégant sans déformer les points.
+   ═══════════════════════════════════════════════════════════════════════ */
+@keyframes city-halo {
+  0%, 100% {
+    stroke-opacity: 0.9;
+    stroke-width: 1;
+  }
+  50% {
+    stroke-opacity: 0.4;
+    stroke-width: 2.5;
+  }
+}
+
+/* Cible les CircleMarker via la classe Leaflet par défaut */
+.leaflet-interactive {
+  animation: city-halo 3s ease-in-out infinite;
+}
+
+/* Au survol : on fige le halo pour faciliter le clic */
+.leaflet-interactive:hover {
+  animation: none;
+  stroke-opacity: 1 !important;
+  stroke-width: 2.5 !important;
+  cursor: pointer;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   FORCE Z-INDEX MAX : Tous les overlays Radix DOIVENT passer au-dessus
+   de Leaflet, même si Leaflet crée son propre stacking context.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+
+
+/* Force tous les overlays Radix au top absolu */
+
+/* Si Radix est dans le DOM avant Leaflet, force le DOM order */
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Z-INDEX HIÉRARCHIE PROPRE
+   - Leaflet pane tooltip : 650 (par défaut)
+   - Leaflet panes : <700
+   - Radix dropdowns : 9999 (au-dessus de tout sauf modals critiques)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Le wrapper Radix Popper doit rester au top */
+[data-radix-popper-content-wrapper] {
+  z-index: 9999 !important;
+}
+
+/* Le SelectContent (dropdown) lui-même */
+[data-radix-select-content] {
+  z-index: 9999 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Z-INDEX HIÉRARCHIE PROPRE — Force tous les overlays Radix au-dessus de Leaflet
+   Tooltip Leaflet pane par défaut : ~650
+   On force Radix à 9999 sur le bon sélecteur (data-slot)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+[data-slot="select-content"] {
+  z-index: 9999 !important;
+}
+[data-radix-popper-content-wrapper] {
+  z-index: 9999 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   DIALOG (modal de zoom) au-dessus de Leaflet
+   ═══════════════════════════════════════════════════════════════════════ */
+
+[data-slot="dialog-overlay"] {
+  z-index: 9998 !important;
+}
+
+[data-slot="dialog-content"] {
+  z-index: 9999 !important;
+}
+/* ═══════════════════════════════════════════════════════════════════════════════
+   🟢 ÉTAPE 10 — TanStack Query Devtools
+   ═══════════════════════════════════════════════════════════════════════════════
+   
+   Réduction du bouton flottant uniquement (le panneau qui s'ouvre n'est pas affecté
+   car il est portail-rendu dans body).
+   
+   À AJOUTER À LA FIN de ton fichier `frontend/src/index.css`.
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* Bouton flottant TanStack Query Devtools — version discrète */
+button[aria-label*="TanStack" i],
+button[aria-label*="Open React Query Devtools" i] {
+  /* Réduction taille */
+  transform: scale(0.6);
+  transform-origin: bottom right;
+  
+  /* Discrétion par défaut */
+  opacity: 0.5;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Au survol : pleine opacité et taille un peu plus grande */
+button[aria-label*="TanStack" i]:hover,
+button[aria-label*="Open React Query Devtools" i]:hover {
+  opacity: 1;
+  transform: scale(0.7);
+}

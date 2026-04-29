@@ -1,0 +1,158 @@
+# ════════════════════════════════════════════════════════════════════════════
+# docker-compose.yml — Météo IA France (V1.0)
+# ════════════════════════════════════════════════════════════════════════════
+# Orchestration des 3 services principaux du projet :
+#   1. postgres — DB PostgreSQL 15 + PostGIS (port 5433)
+#   2. backend  — API Express (port 3001)
+#   3. frontend — SPA React/Vite servie par Nginx (port 8080)
+#
+# Variables d'environnement lues depuis ./.env (racine projet)
+#   → DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
+#
+# Usage local :
+#   docker compose up -d                  # démarrer en arrière-plan
+#   docker compose logs -f                # voir les logs en direct
+#   docker compose down                   # arrêter (garde le volume DB)
+#   docker compose down -v                # arrêter + supprimer le volume DB
+#   docker compose ps                     # voir l'état des services
+#
+# Usage prod (sur VPS) :
+#   docker compose up -d --build          # build + démarrer
+#   docker compose pull && docker compose up -d --build  # update
+# ════════════════════════════════════════════════════════════════════════════
+
+# Note : on ne met PAS "version: '3.8'" car c'est obsolète sur Docker Compose v2
+# (Compose v2 ignore cette ligne et le warning est gênant).
+
+services:
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 🗄️  POSTGRES — Base de données PostgreSQL 15 + PostGIS
+  # ──────────────────────────────────────────────────────────────────────────
+  postgres:
+    image: postgis/postgis:15-3.4-alpine
+    container_name: meteo_ia_pg_db_compose
+    restart: unless-stopped
+
+    # Variables d'environnement standard Postgres
+    # (lues depuis le .env racine via "${...}")
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      # Encodage UTF-8 explicite (sinon Alpine peut tomber en C-locale)
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+
+    # Mappage de ports : 5433 sur le host → 5432 dans le container
+    # (5432 occupé par trading_pg_db sur le VPS)
+    ports:
+      - "${DB_PORT:-5433}:5432"
+
+    # Volumes :
+    #   - meteo_ia_pg_data : données Postgres persistantes (survie redémarrages)
+    #   - backend/backup/meteo_ia_db.sql : auto-init au 1er démarrage
+    volumes:
+      - meteo_ia_pg_data:/var/lib/postgresql/data
+      - ./backend/backup/meteo_ia_db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+
+    # Healthcheck : vérifie que Postgres répond aux pings
+    # Le backend attend ce healthcheck (via depends_on.condition) avant de démarrer
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s   # délai pour le 1er init (charge le backup .sql 333 Mo)
+
+    networks:
+      - meteo-net
+
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # ⚙️  BACKEND — API Express Node.js
+  # ──────────────────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: meteo-ia-backend:1.0.0
+    container_name: meteo_ia_backend
+    restart: unless-stopped
+
+    # Variables d'env injectées dans le container
+    # ⚠️ DB_HOST = "postgres" (nom du service compose), PAS "localhost"
+    #    Car les containers se voient via leur nom de service sur le réseau Docker.
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DB_HOST: postgres
+      DB_PORT: 5432           # Port INTERNE Postgres (pas 5433 !)
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      CORS_ORIGINS: "http://localhost:8080,http://localhost"
+      RATE_LIMIT_WINDOW_MIN: 60
+      RATE_LIMIT_MAX: 100
+      CACHE_TTL_SECONDS: 600
+
+    # Port 3001 du container exposé sur 3001 du host (pour debug local)
+    # En prod via Nginx host, on pourra retirer cette ligne (sécurité)
+    ports:
+      - "3001:3001"
+
+    # Le backend ne démarre QUE si Postgres est healthy
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - meteo-net
+
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 🎨  FRONTEND — SPA React/Vite servie par Nginx
+  # ──────────────────────────────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      # Build args injectés dans le multi-stage Vite au moment de "npm run build"
+      # En prod : appels relatifs /api/* qui seront routés par Nginx host
+      args:
+        VITE_USE_API: "true"
+        VITE_API_URL: ""
+    image: meteo-ia-frontend:1.0.0
+    container_name: meteo_ia_frontend
+    restart: unless-stopped
+
+    # Port 80 du container Nginx exposé sur 8080 du host (en local)
+    # En prod : Nginx host écoute sur 80/443 et reverse proxy vers ce 8080
+    ports:
+      - "8080:80"
+
+    # Le frontend est statique (Nginx servant des fichiers HTML/CSS/JS),
+    # donc pas besoin d'attendre le backend pour démarrer.
+    # Mais on met depends_on pour la cohérence d'arrêt/démarrage.
+    depends_on:
+      - backend
+
+    networks:
+      - meteo-net
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 🔗  Réseau partagé entre les 3 services
+# ════════════════════════════════════════════════════════════════════════════
+networks:
+  meteo-net:
+    driver: bridge
+    name: meteo_ia_network
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 💾  Volumes persistants
+# ════════════════════════════════════════════════════════════════════════════
+volumes:
+  meteo_ia_pg_data:
+    name: meteo_ia_pg_data
+    driver: local

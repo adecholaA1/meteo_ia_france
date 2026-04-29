@@ -1,0 +1,55 @@
+# ============================================================================
+# .dockerignore — backend Express Météo IA France
+# ============================================================================
+# Rôle : exclure les fichiers/dossiers de l'image Docker pour :
+#   - Sécurité (NE PAS embarquer .env avec les vrais credentials)
+#   - Performance (NE PAS copier node_modules, plus rapide)
+#   - Propreté (NE PAS embarquer fichiers macOS, IDE, logs)
+# ============================================================================
+
+# --- Dépendances (réinstallées dans le container via npm ci) ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Variables d'environnement (CRITIQUE — JAMAIS dans une image !) ---
+.env
+.env.local
+.env.*.local
+
+# Note : .env.example est gardé (template safe sans secrets)
+
+# --- Fichiers macOS / IDE / éditeurs ---
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# --- Git (l'historique Git ne sert à rien dans une image prod) ---
+.git/
+.gitignore
+.gitattributes
+
+# --- Logs (l'image démarre vierge, pas de logs historiques) ---
+logs/
+*.log
+
+# --- Tests et docs (pas nécessaires en prod) ---
+tests/
+test/
+__tests__/
+coverage/
+*.md
+README*
+
+# --- Docker lui-même ---
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# --- Backup DB (volumineux 333 Mo — on l'utilise via volume mounting,
+#     PAS en l'embarquant dans l'image backend) ---
+backup/

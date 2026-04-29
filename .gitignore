@@ -1,0 +1,150 @@
+# ════════════════════════════════════════════════════════════════════════════
+# .gitignore — Météo IA France V1.0
+# ════════════════════════════════════════════════════════════════════════════
+# Liste des fichiers et dossiers à NE PAS commiter sur GitHub.
+# Tout ce qui n'est pas listé ici sera trackable par Git.
+# ════════════════════════════════════════════════════════════════════════════
+
+
+# ─── 🔒 SECRETS & VARIABLES D'ENVIRONNEMENT (CRITIQUE) ──────────────────────
+# Ne JAMAIS commiter de fichiers .env contenant des credentials réels.
+# Le seul qui DOIT être commité est .env.production.example (template).
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+*.env
+!.env.production.example
+!.env.example
+
+
+# ─── 🐍 PYTHON ──────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+.env-py/
+*.egg-info/
+*.egg
+.pytest_cache/
+.ipynb_checkpoints/
+.python-version
+
+
+# ─── 📦 NODE.JS ─────────────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+.yarn/
+.pnp.*
+.yarn-integrity
+
+
+# ─── 🎨 FRONTEND BUILD (Vite) ───────────────────────────────────────────────
+# Le dossier dist/ est régénéré au moment du build Docker.
+# Pas la peine de le commiter (gros et redondant).
+frontend/dist/
+frontend/build/
+frontend/.vite/
+dist/
+build/
+
+
+# ─── 🤖 MODÈLE GRAPHCAST (très volumineux ~5.5 Go) ──────────────────────────
+# Le modèle est téléchargé automatiquement depuis Google Cloud Storage
+# lors du 1er run du pipeline graphcast_gfs.
+# Ne JAMAIS le commiter (taille + licence).
+.graphcast_cache/
+data/.graphcast_cache/
+*.npz
+graphcast_operational_params.npz
+
+
+# ─── 📊 DONNÉES & LOGS ──────────────────────────────────────────────────────
+# Données brutes (NetCDF, GRIB2, CSV) — régénérées par les pipelines cron.
+data/
+output/
+logs/
+*.log
+*.grib2
+*.nc
+*.nc4
+
+# Exception : on GARDE le backup DB (via Git LFS, configuré séparément)
+!backend/backup/
+!backend/backup/meteo_ia_db.sql
+
+
+# ─── 🐳 DOCKER ──────────────────────────────────────────────────────────────
+# Fichiers temporaires de build Docker
+.docker/
+docker-compose.override.yml
+
+# Backups que j'ai créés ce soir pendant les modifs
+*.backup
+*.bak
+*.tsx.backup
+
+
+# ─── 📝 SYSTÈMES & ÉDITEURS ─────────────────────────────────────────────────
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows (au cas où on dev sur Windows un jour)
+Thumbs.db
+Desktop.ini
+
+# IDE / Éditeurs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.cursor/
+
+# Linux
+*~
+.directory
+
+
+# ─── 🧪 TESTS & COVERAGE ────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+*.lcov
+.coverage
+htmlcov/
+
+
+# ─── 🗂️  TEMPORAIRES & DIVERS ──────────────────────────────────────────────
+# Fichiers temporaires divers
+*.tmp
+*.temp
+.cache/
+.parcel-cache/
+tmp/
+temp/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Sauvegardes diverses
+methodology_components_backup/
+*.original
+*.old
+
+
+# ─── 📜 DOCUMENTATION DRAFTS (optionnel) ────────────────────────────────────
+# Si tu as des brouillons de docs en Markdown qu'on ne veut pas commiter
+# DRAFTS/
+# WIP/

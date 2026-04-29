@@ -1,0 +1,54 @@
+# ============================================================================
+# .dockerignore — frontend Vite/React Météo IA France
+# ============================================================================
+# Rôle : exclure les fichiers/dossiers du contexte de build Docker.
+# Identique en logique au .dockerignore backend, adapté pour le frontend.
+# ============================================================================
+
+# --- Dépendances (réinstallées dans le stage builder via npm ci) ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Variables d'environnement (CRITIQUE — JAMAIS dans une image !) ---
+# Note : les VITE_* de prod seront passées via --build-arg au moment du build,
+#        pas via un fichier .env embarqué.
+.env
+.env.local
+.env.*.local
+.env.production
+
+# --- Fichiers macOS / IDE / éditeurs ---
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# --- Git ---
+.git/
+.gitignore
+.gitattributes
+
+# --- Build artefacts (régénérés dans le stage builder) ---
+dist/
+build/
+.vite/
+
+# --- Tests et docs ---
+tests/
+test/
+__tests__/
+coverage/
+*.md
+README*
+
+# --- Docker lui-même ---
+Dockerfile
+.dockerignore
+docker-compose*.yml
+
+# --- Outillage local ---
+scripts/

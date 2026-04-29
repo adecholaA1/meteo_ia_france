@@ -1,0 +1,93 @@
+# ════════════════════════════════════════════════════════════════════════════
+# environment.yml — Météo IA France V1.0
+# ════════════════════════════════════════════════════════════════════════════
+#
+# 🎯 RÔLE
+#   Ce fichier décrit l'environnement Python complet du projet pour conda.
+#   Il installe Python 3.11 + tous les packages "lourds" via conda-forge
+#   (eccodes, cartopy, NetCDF, JAX, numpy/pandas/scipy/xarray, etc.) qui
+#   nécessitent des libs C compilées. Les packages Python pur (cdsapi,
+#   graphcast, gcsfs) sont installés par pip dans une seconde étape.
+#
+# 📋 INSTALLATION COMPLÈTE (3 étapes obligatoires)
+#
+#   1. Créer l'env conda + libs système :
+#      conda env create -f environment.yml
+#      conda activate meteo_ia
+#
+#   2. Installer les packages Python pur via pip :
+#      pip install -r requirements.txt
+#
+#   3. Installer GraphCast (n'est PAS sur PyPI ni conda-forge) :
+#      pip install git+https://github.com/deepmind/graphcast.git@08cf73625c9d12bd9aaa038868bcb2fe488f2a22
+#
+# 🐍 Python : 3.11.15 (compatible GraphCast + JAX 0.9.2)
+# 🖥️ OS testé : macOS Intel (dev local), Ubuntu 24 (VPS prod)
+# 📅 Dernière mise à jour : 29/04/2026
+# 📦 ~141 packages conda + ~70 packages pip = 212 packages au total
+#
+# ════════════════════════════════════════════════════════════════════════════
+# ⚠️ NOTES CRITIQUES
+# ════════════════════════════════════════════════════════════════════════════
+#
+# JAX/JAXLIB :
+#   - jax 0.9.2 + jaxlib 0.9.2 (build cpu_py311) viennent de conda-forge
+#   - PyPI ne propose pas ces versions (max 0.4.38 sur PyPI au 29/04/2026)
+#   - Pour GPU NVIDIA : remplacer la ligne jaxlib=0.9.2 par "jax-cuda12-pjrt"
+#     (cf. doc JAX https://jax.readthedocs.io/en/latest/installation.html)
+#
+# ECCODES :
+#   - eccodes 2.46.0 (lib C) + python-eccodes 2.46.0 (bindings) DOIVENT venir
+#     de conda-forge. Sinon cfgrib échoue à runtime avec "libeccodes not found"
+#
+# CARTOPY :
+#   - Dépend de GEOS et PROJ (libs C). Toujours installer via conda, jamais pip
+#
+# ════════════════════════════════════════════════════════════════════════════
+
+name: meteo_ia
+
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  # ─── 🐍 PYTHON ────────────────────────────────────────────────────────────
+  - python=3.11.15
+
+  # ─── 🤖 JAX STACK (GraphCast nécessite jax/jaxlib 0.9.2) ──────────────────
+  # Ces versions ne sont PAS sur PyPI, uniquement sur conda-forge !
+  - jax=0.9.2
+  - jaxlib=0.9.2
+
+  # ─── 🧮 CALCUL SCIENTIFIQUE ───────────────────────────────────────────────
+  - numpy=2.4.3
+  - pandas=3.0.2
+  - scipy=1.17.1
+
+  # ─── 🌍 DONNÉES GÉO/MÉTÉO (NetCDF, GRIB, projections) ─────────────────────
+  # IMPORTANT : ces packages ont des deps C qui doivent venir de conda-forge
+  - xarray=2026.4.0
+  - netcdf4=1.7.4
+  - libnetcdf=4.10.0
+  - hdf5=2.1.0
+  - cfgrib=0.9.15.1
+  - eccodes=2.46.0                    # Backend C pour GRIB (SYSTÈME critique)
+  - python-eccodes=2.46.0             # Bindings Python eccodes
+  - cftime=1.6.5                      # Gestion calendriers climato
+  - pyproj=3.7.2                      # Projections cartographiques
+  - cartopy=0.25.0                    # Cartes (debug/notebooks)
+
+  # ─── 📊 VISUALISATION (debug/notebooks uniquement) ────────────────────────
+  - matplotlib=3.10.8
+  - matplotlib-base=3.10.8
+
+  # ─── 🛠️ UTILITAIRES BAS-NIVEAU ───────────────────────────────────────────
+  - python-dateutil=2.9.0.post0
+  - certifi
+  - cffi=2.0.0
+  - charset-normalizer
+  - click
+
+  # ─── 📦 PIP (pour installer requirements.txt après) ───────────────────────
+  - pip

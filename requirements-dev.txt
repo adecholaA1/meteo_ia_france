@@ -1,0 +1,64 @@
+# ════════════════════════════════════════════════════════════════════════════
+# requirements-dev.txt — Météo IA France V1.0
+# ════════════════════════════════════════════════════════════════════════════
+#
+# 🎯 RÔLE
+#   Dépendances de DÉVELOPPEMENT uniquement (tests, linting, notebooks).
+#   Ne PAS installer en production sur le VPS.
+#
+# 📋 INSTALLATION
+#   1. S'assurer que l'env conda est activé : conda activate meteo_ia
+#   2. Installer le requirements de prod en premier : pip install -r requirements.txt
+#   3. Installer les outils dev par-dessus : pip install -r requirements-dev.txt
+#
+# 📅 Dernière mise à jour : 29/04/2026
+# ⚠️ Note : la majorité de ces outils ne sont pas encore utilisés en V1.0.
+#           Ils sont prévus pour la V1.1 (tests, CI/CD, lint automatique).
+#
+# ════════════════════════════════════════════════════════════════════════════
+
+
+# ─── 🧪 TESTS (V1.1 — pas encore implémentés en V1.0) ──────────────────────
+# Framework de tests Python standard
+pytest>=8.3,<9.0
+pytest-cov>=5.0,<6.0          # Coverage pour pytest
+pytest-mock>=3.14,<4.0        # Mocks faciles pour les tests pipelines
+pytest-asyncio>=0.24,<1.0     # Tests async (utile pour gcsfs)
+
+
+# ─── 📓 NOTEBOOKS & EXPLORATION INTERACTIVE ─────────────────────────────────
+# Pour debug interactif des pipelines, exploration NetCDF, validation MAE
+jupyter>=1.1,<2.0
+jupyterlab>=4.3,<5.0
+ipython>=8.30,<9.0
+ipywidgets>=8.1,<9.0          # Widgets interactifs (cartes Folium notebooks)
+
+
+# ─── 🎨 LINTING & FORMATAGE ─────────────────────────────────────────────────
+# Linter ultra-rapide (remplace flake8 + pyflakes + isort)
+ruff>=0.8,<1.0
+
+# Formateur automatique
+black>=24.10,<25.0
+
+# Type checking statique
+mypy>=1.13,<2.0
+
+# Pre-commit hooks (V1.1)
+pre-commit>=4.0,<5.0
+
+
+# ─── 🔍 OUTILS DE DEBUG & PROFILING ─────────────────────────────────────────
+# Profiler ligne par ligne (utile pour optimiser les pipelines GraphCast/MAE)
+line_profiler>=4.2,<5.0
+
+# Mémoire profiler (utile pour debug OOM sur VPS 4 Go)
+memory_profiler>=0.61,<1.0
+
+
+# ─── 📊 VISUALISATION COMPLÉMENTAIRE (debug local) ──────────────────────────
+# Cartes interactives dans les notebooks
+folium>=0.18,<1.0
+
+# Plots interactifs Plotly (debug séries temporelles)
+plotly>=5.24,<6.0
