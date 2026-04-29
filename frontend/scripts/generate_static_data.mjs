@@ -16,7 +16,7 @@ import { fileURLToPath } from "node:url"
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const OUTPUT_DIR = join(__dirname, "..", "public", "data")
 const HEATMAP_DIR = join(OUTPUT_DIR, "heatmaps")
-const API_BASE = "http://localhost:3001/api"
+const API_BASE = (process.env.BACKEND_URL ?? "http://localhost:3001") + "/api"
 
 // Point GPS de référence pour les courbes : Paris
 const PARIS_LAT = 48.75

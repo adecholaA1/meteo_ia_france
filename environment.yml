@@ -67,7 +67,7 @@ dependencies:
 
   # ─── 🌍 DONNÉES GÉO/MÉTÉO (NetCDF, GRIB, projections) ─────────────────────
   # IMPORTANT : ces packages ont des deps C qui doivent venir de conda-forge
-  - xarray=2026.4.0
+  - xarray<2026
   - netcdf4=1.7.4
   - libnetcdf=4.10.0
   - hdf5=2.1.0
