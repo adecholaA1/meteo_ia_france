@@ -140,13 +140,87 @@ export function useHeatmapData(
           // ─────────────────────────────────────────────────────
           // 💾 MODE JSON STATIQUE (comportement d'origine)
           // ─────────────────────────────────────────────────────
+          // V1.0 : fichiers JSON heatmaps pas inclus dans le build Docker
+          //   → fallback automatique vers le mode API si fetch échoue
+          // V1.1 : régénérer JSON via npm run build:data + inclure dans Docker
           let file = cacheStatic.get(variable)
           if (!file) {
-            const response = await fetch(`/data/heatmaps/${variable}.json`)
-            if (!response.ok) throw new Error(`HTTP ${response.status}`)
-            file = (await response.json()) as HeatmapVariableFile
-            if (cancelled) return
-            cacheStatic.set(variable, file)
+            try {
+              const response = await fetch(`/data/heatmaps/${variable}.json`)
+              if (!response.ok) {
+                throw new Error(`HTTP ${response.status} ${response.statusText}`)
+              }
+              // Vérifier que le content-type est bien JSON
+              // (sinon nginx renvoie un HTML d'erreur 404 qui plante .json())
+              const contentType = response.headers.get("content-type") || ""
+              if (!contentType.includes("application/json")) {
+                throw new Error(`Expected JSON, got ${contentType}`)
+              }
+              file = (await response.json()) as HeatmapVariableFile
+              if (cancelled) return
+              cacheStatic.set(variable, file)
+            } catch (staticErr) {
+              if (cancelled) return
+              console.warn(
+                `[useHeatmapData/STATIC] JSON statique indisponible pour ${variable} ` +
+                  `(probablement non inclus dans ce build), bascule en mode API :`,
+                staticErr instanceof Error ? staticErr.message : String(staticErr)
+              )
+              // Fallback automatique : on refait le useEffect en mode API
+              // en re-trigger via un état React → trop complexe. Plus simple :
+              // appeler directement les endpoints API ici.
+
+              // 1. Récupérer les timestamps via API
+              const tsCacheKey = `${variable}|${sourceForFile}`
+              let timestamps = cacheApiTimestamps.get(tsCacheKey)
+              if (!timestamps) {
+                const availResponse = await fetch(
+                  `${API_BASE_URL}/api/forecast/available-times?source=era5`
+                )
+                if (!availResponse.ok)
+                  throw new Error(`HTTP ${availResponse.status} (available-times fallback)`)
+                const availData = (await availResponse.json()) as {
+                  times: Array<{ date: string; hour: string }>
+                }
+                timestamps = availData.times.map(
+                  (t) => `${t.date}T${t.hour.padStart(2, "0")}:00:00.000Z`
+                )
+                cacheApiTimestamps.set(tsCacheKey, timestamps)
+              }
+              if (cancelled) return
+              setAvailableTimestamps(timestamps)
+
+              // 2. Récupérer la grid pour le timestamp courant
+              const ts = timestamp || timestamps[0]
+              if (!ts) {
+                setGrid(null)
+                return
+              }
+
+              const gridCacheKey = `${variable}|${sourceForFile}|${ts}`
+              if (cacheApi.has(gridCacheKey)) {
+                setGrid(cacheApi.get(gridCacheKey) ?? null)
+                return
+              }
+
+              const isoMatch = ts.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}):/)
+              if (!isoMatch) {
+                throw new Error(`Format timestamp invalide : ${ts}`)
+              }
+              const date = isoMatch[1]
+              const hour = isoMatch[2]
+
+              const heatmapResponse = await fetch(
+                `${API_BASE_URL}/api/heatmap/error?source=${sourceForFile}&date=${date}&hour=${hour}&variable=${variable}`
+              )
+              if (!heatmapResponse.ok)
+                throw new Error(`HTTP ${heatmapResponse.status} (heatmap fallback)`)
+              const heatmapGrid = (await heatmapResponse.json()) as HeatmapGrid
+              if (cancelled) return
+              cacheApi.set(gridCacheKey, heatmapGrid)
+              setGrid(heatmapGrid)
+              return  // important : on a fini ici, ne pas continuer en mode static
+            }
           }
 
           const sourceData = file[sourceForFile]
