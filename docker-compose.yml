@@ -90,15 +90,15 @@ services:
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      CORS_ORIGINS: "http://localhost:8080,http://localhost"
-      RATE_LIMIT_WINDOW_MIN: 60
-      RATE_LIMIT_MAX: 100
-      CACHE_TTL_SECONDS: 600
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      RATE_LIMIT_WINDOW_MIN: ${RATE_LIMIT_WINDOW_MIN:-60}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-500}
+      CACHE_TTL_SECONDS: ${CACHE_TTL_SECONDS:-600}
 
     # Port 3001 du container exposé sur 3001 du host (pour debug local)
     # En prod via Nginx host, on pourra retirer cette ligne (sécurité)
     ports:
-      - "3001:3001"
+      - "${BACKEND_HOST_PORT:-3001}:3001"
 
     # Le backend ne démarre QUE si Postgres est healthy
     depends_on:
