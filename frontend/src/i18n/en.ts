@@ -114,7 +114,7 @@ export const en: Translations = {
   },
   maeTable: {
     title: "📊 MAE (Mean Absolute Error) — ERA5 ground truth",
-    subtitle: "7-day average",
+    subtitle: "7-day rolling average",
     horizons: {
       h6: "2 a.m. UTC+2",
       h12: "8 a.m. UTC+2",
@@ -139,7 +139,7 @@ export const en: Translations = {
   },
   franceMap: {
     title: "🗺️ France map",
-    subtitle: "103 cities / 2,925 · 0.25° grid",
+    subtitle: "103 cities / 2,925 · 0.25° grid (Resolution 0.25° ≈ 25 km)",
     topCitiesLegend: "10 largest cities",
     sources: {
       arome: "AROME",

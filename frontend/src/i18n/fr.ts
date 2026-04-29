@@ -112,7 +112,7 @@ export const fr = {
   },
   maeTable: {
     title: "📊 MAE (Mean Absolute Error) — Vérité terrain ERA5",
-    subtitle: "moyenne 7 jours",
+    subtitle: "moyenne 7 derniers jours",
     horizons: {
       h6: "02 h UTC+2",
       h12: "08 h UTC+2",
@@ -137,7 +137,7 @@ export const fr = {
   },
   franceMap: {
     title: "🗺️ Carte France",
-    subtitle: "103 villes / 2 925 · grille 0,25°",
+    subtitle: "103 villes / 2 925 · grille 0,25° (Résolution 0,25° ≈ 25 km)",
     topCitiesLegend: "10 plus grandes villes",
     sources: {
       arome: "AROME",
