@@ -108,10 +108,19 @@ export function useStaticData(): UseStaticDataReturn {
       // ─────────────────────────────────────────────────────────
       // 💾 MODE JSON STATIQUE (comportement d'origine)
       // ─────────────────────────────────────────────────────────
+      // V1.0 : fichiers JSON pas inclus dans le build Docker
+      //   → fallback automatique vers le mode API si fetch échoue
+      // V1.1 : régénérer JSON via npm run build:data + inclure dans Docker
       fetch("/data/sample_forecast.json")
         .then((response) => {
           if (!response.ok) {
             throw new Error(`HTTP ${response.status} ${response.statusText}`)
+          }
+          // Vérifier que le content-type est bien JSON
+          // (sinon nginx renvoie un HTML d'erreur 404 qui plante .json())
+          const contentType = response.headers.get("content-type") || ""
+          if (!contentType.includes("application/json")) {
+            throw new Error(`Expected JSON, got ${contentType}`)
           }
           return response.json()
         })
@@ -123,9 +132,26 @@ export function useStaticData(): UseStaticDataReturn {
         })
         .catch((err: Error) => {
           if (cancelled) return
-          console.error("[useStaticData/STATIC] Erreur :", err)
-          setError(err.message)
-          setLoading(false)
+          console.warn(
+            "[useStaticData/STATIC] JSON statique indisponible " +
+              "(probablement non inclus dans ce build), bascule en mode API :",
+            err.message
+          )
+          // Fallback automatique : on utilise l'API
+          loadFromApi()
+            .then((snapshot) => {
+              if (cancelled) return
+              cachedStatic = snapshot
+              cachedApi = snapshot
+              setData(snapshot)
+              setLoading(false)
+            })
+            .catch((apiErr: Error) => {
+              if (cancelled) return
+              console.error("[useStaticData/STATIC→API] Erreur :", apiErr)
+              setError(apiErr.message)
+              setLoading(false)
+            })
         })
     }
 
