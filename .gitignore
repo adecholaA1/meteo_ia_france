@@ -148,3 +148,4 @@ methodology_components_backup/
 # Si tu as des brouillons de docs en Markdown qu'on ne veut pas commiter
 # DRAFTS/
 # WIP/
+*.backup-*
